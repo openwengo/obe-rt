@@ -69,6 +69,7 @@ static const char * const input_video_formats[]      = { "pal", "ntsc", "720p50"
                                                          "1080p60", 0 };
 static const char * const input_video_connections[]  = { "sdi", "hdmi", "optical-sdi", "component", "composite", "s-video", 0 };
 static const char * const input_audio_connections[]  = { "embedded", "aes-ebu", "analogue", 0 };
+static const char * const input_conversion_modes[]   = { "none", "10am", "72am", 0 };
 static const char * const ttx_locations[]            = { "dvb-ttx", "dvb-vbi", "both", 0 };
 static const char * const stream_actions[]           = { "passthrough", "encode", 0 };
 static const char * const encode_formats[]           = { "", "avc", "", "", "mp2", "ac3", "e-ac3", "aac", 0 };
@@ -84,7 +85,7 @@ static const char * const output_modules[]           = { "udp", "rtp", "linsys-a
 static const char * const addable_streams[]          = { "audio", "ttx" };
 
 static const char * system_opts[] = { "system-type", NULL };
-static const char * input_opts[]  = { "location", "card-idx", "video-format", "video-connection", "audio-connection", NULL };
+static const char * input_opts[]  = { "location", "card-idx", "video-format", "video-connection", "audio-connection", "conversion-mode", NULL };
 static const char * add_opts[] =    { "type" };
 /* TODO: split the stream options into general options, video options, ts options */
 static const char * stream_opts[] = { "action", "format",
@@ -518,6 +519,7 @@ static int set_input( char *command, obecli_command_t *child )
         char *video_format = obe_get_option( input_opts[2], opts );
         char *video_connection = obe_get_option( input_opts[3], opts );
         char *audio_connection = obe_get_option( input_opts[4], opts );
+        char *conversion_mode  = obe_get_option( input_opts[5], opts );
 
         FAIL_IF_ERROR( video_format && ( check_enum_value( video_format, input_video_formats ) < 0 ),
                        "Invalid video format\n" );
@@ -526,6 +528,9 @@ static int set_input( char *command, obecli_command_t *child )
                        "Invalid video connection\n" );
 
         FAIL_IF_ERROR( audio_connection && ( check_enum_value( audio_connection, input_audio_connections ) < 0 ),
+                       "Invalid audio connection\n" );
+
+        FAIL_IF_ERROR( conversion_mode && ( check_enum_value( conversion_mode, input_conversion_modes ) < 0 ),
                        "Invalid audio connection\n" );
 
         if( location )
@@ -545,6 +550,8 @@ static int set_input( char *command, obecli_command_t *child )
             parse_enum_value( video_connection, input_video_connections, &cli.input.video_connection );
         if( audio_connection )
             parse_enum_value( audio_connection, input_audio_connections, &cli.input.audio_connection );
+        if( conversion_mode )
+            parse_enum_value( conversion_mode, input_conversion_modes, &cli.input.conversion_mode );
 
         obe_free_string_array( opts );
     }
@@ -1052,7 +1059,7 @@ static int show_help( char *command, obecli_command_t *child )
     for( int i = 0; add_commands[i].name != 0; i++ )
     {
         H0( "       %-*s          - %s \n", 8, add_commands[i].name, add_commands[i].description );
-        i++;
+        //i++;
     }
 
     H0( "\n" );

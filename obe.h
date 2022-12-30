@@ -90,6 +90,13 @@ enum input_video_format_e
     INPUT_VIDEO_FORMAT_1080P_60, /* NB: actually 60.00Hz */
 };
 
+enum input_conversion_mode_e
+{
+    INPUT_NO_VIDEO_CONVERSION                                    , /* 'none' */
+    INPUT_ANAMORPHIC_DOWN_CONVERSION_FROM_HD1080                 , /* '10am' */
+    INPUT_ANAMORPHIC_DOWN_CONVERSION_FROM_HD720                  , /* '72am' */
+};
+
 enum input_type_e
 {
     INPUT_URL,
@@ -109,6 +116,7 @@ typedef struct
     int video_format;
     int video_connection;
     int audio_connection;
+    int conversion_mode;
 } obe_input_t;
 
 /**** Stream Formats ****/

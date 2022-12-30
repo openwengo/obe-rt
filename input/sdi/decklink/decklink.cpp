@@ -96,6 +96,14 @@ const static struct obe_to_decklink_video video_format_tab[] =
     { -1, 0, -1, -1 },
 };
 
+const static struct obe_to_decklink conversion_mode_tab[] =
+{
+    { INPUT_NO_VIDEO_CONVERSION,                     bmdNoVideoInputConversion },
+    { INPUT_ANAMORPHIC_DOWN_CONVERSION_FROM_HD1080,  bmdVideoInputAnamorphicDownconversionFromHD1080 },
+    { INPUT_ANAMORPHIC_DOWN_CONVERSION_FROM_HD720,   bmdVideoInputAnamorphicDownconversionFromHD720 },
+    { -1, 0 },
+};
+
 class DeckLinkCaptureDelegate;
 
 typedef struct
@@ -160,6 +168,8 @@ typedef struct
 
     int interlaced;
     int tff;
+
+    int conversion_mode;
 } decklink_opts_t;
 
 struct decklink_status
@@ -792,6 +802,29 @@ static int open_card( decklink_opts_t *decklink_opts )
         goto finish;
     }
 
+    /* Set up input down conversion */
+    for( i = 0; conversion_mode_tab[i].obe_name != -1; i++ )
+    {
+        if( conversion_mode_tab[i].obe_name == decklink_opts->conversion_mode )
+            break;
+    }
+
+    if( conversion_mode_tab[i].obe_name == -1 )
+    {
+        fprintf( stderr, "[decklink] Unsupported conversion mode\n" );
+        ret = -1;
+        goto finish;
+    }
+
+
+    result = decklink_ctx->p_config->SetInt( bmdDeckLinkConfigVideoInputConversionMode, conversion_mode_tab[i].bmd_name );
+    if( result != S_OK )
+    {
+        fprintf( stderr, "[decklink] Failed to set video input conversion\n" );
+        ret = -1;
+        goto finish;
+    }
+    
     result = decklink_ctx->p_card->QueryInterface(IID_IDeckLinkAttributes, (void**)&decklink_attributes );
     if( result != S_OK )
     {
@@ -1005,6 +1038,7 @@ static void *probe_stream( void *ptr )
     decklink_opts->video_conn = user_opts->video_connection;
     decklink_opts->audio_conn = user_opts->audio_connection;
     decklink_opts->video_format = user_opts->video_format;
+    decklink_opts->conversion_mode = user_opts->conversion_mode;
 
     decklink_opts->probe = non_display_parser->probe = 1;
 
@@ -1152,6 +1186,7 @@ static void *open_input( void *ptr )
     decklink_opts->video_conn = user_opts->video_connection;
     decklink_opts->audio_conn = user_opts->audio_connection;
     decklink_opts->video_format = user_opts->video_format;
+    decklink_opts->conversion_mode = user_opts->conversion_mode;
 
     decklink_ctx = &decklink_opts->decklink_ctx;
 

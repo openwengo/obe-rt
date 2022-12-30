@@ -112,7 +112,7 @@ typedef struct
 static obecli_command_t add_commands[] =
 {
     { "stream", "",  "Add stream", add_stream, NULL },
-    { 0 }
+    { 0, 0 , 0 , 0, 0 }
 };
 
 static obecli_command_t remove_commands[] =
